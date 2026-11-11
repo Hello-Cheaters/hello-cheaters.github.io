@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#071225" />
+  <title>Hello Cheaters!</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071225;
+      --panel: rgba(13, 29, 54, .82);
+      --panel-2: #102442;
+      --line: rgba(151, 187, 235, .13);
+      --text: #edf4ff;
+      --muted: #8fa4c2;
+      --blue: #4b91ff;
+      --blue-2: #2875e8;
+      --cyan: #62d8f5;
+      --green: #55d6a4;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .38);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 12% -8%, rgba(42, 111, 211, .24), transparent 40%),
+        radial-gradient(ellipse at 94% 8%, rgba(45, 178, 222, .10), transparent 32%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: -.01em;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 18, 37, .82);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner { position: relative; min-height: 76px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .tabs { display: flex; align-items: center; gap: 5px; padding: 5px; border: 1px solid var(--line); border-radius: 14px; background: rgba(10, 25, 47, .82); }
+    .tab { border: 0; border-radius: 10px; padding: 10px 20px; color: #91a6c4; background: transparent; font-size: 13px; font-weight: 750; transition: .2s ease; }
+    .tab:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .tab.active { color: #fff; background: linear-gradient(135deg, #256bd0, #174b91); box-shadow: 0 5px 18px rgba(35, 105, 207, .26), inset 0 1px rgba(255,255,255,.12); }
+    .top-actions { position: absolute; right: max(20px, calc((100vw - 1120px) / 2)); display: flex; justify-content: flex-end; min-width: 190px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; color: #8fa6c7; font-size: 11px; font-weight: 650; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px rgba(66,214,160,.7); }
+    .status-dot.loading { background: #eab65b; box-shadow: 0 0 12px rgba(234,182,91,.6); }
+    .status-dot.error { background: #ff7187; box-shadow: 0 0 12px rgba(255,113,135,.6); }
+
+    main { padding: 54px 0 70px; }
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin-bottom: 34px; }
+    .eyebrow { display: flex; align-items: center; gap: 9px; color: #70aaf8; font-size: 10px; font-weight: 800; letter-spacing: .19em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 21px; height: 1px; background: #438be9; }
+    h1 { margin: 13px 0 9px; font-size: clamp(32px, 5vw, 48px); line-height: 1.04; letter-spacing: -.055em; }
+    .hero p { max-width: 560px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .hero-note { flex: 0 0 auto; padding: 12px 15px; border: 1px solid var(--line); border-radius: 12px; background: rgba(15, 35, 63, .58); color: #9bb0cd; font-size: 11px; }
+    .hero-note strong { display: block; margin-bottom: 4px; color: #e8f1ff; font-size: 13px; }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 26px 0 18px; }
+    .section-heading { display: flex; align-items: center; gap: 10px; }
+    .section-heading h2 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+    .count { min-width: 23px; padding: 3px 7px; border: 1px solid rgba(101,158,235,.2); border-radius: 7px; background: rgba(53,119,208,.13); color: #8bbaff; text-align: center; font-size: 10px; font-weight: 800; }
+    .toolbar-actions { display: flex; gap: 10px; align-items: center; }
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; top: 50%; left: 13px; width: 16px; height: 16px; transform: translateY(-50%); color: #7892b4; pointer-events: none; }
+    .search { width: min(250px, 38vw); height: 40px; padding: 0 13px 0 38px; border: 1px solid var(--line); border-radius: 10px; outline: none; color: var(--text); background: rgba(12, 29, 53, .76); font-size: 12px; transition: border-color .2s, box-shadow .2s; }
+    .search:focus { border-color: rgba(80,151,255,.65); box-shadow: 0 0 0 3px rgba(56,129,232,.12); }
+    .search::placeholder { color: #7086a5; }
+    .primary-btn, .secondary-btn, .link-btn {
+      height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 15px; border: 1px solid rgba(117,177,255,.22); border-radius: 10px;
+      color: white; background: linear-gradient(135deg, #347fe8, #205db6);
+      box-shadow: 0 7px 20px rgba(29,100,201,.2); font-size: 12px; font-weight: 750;
+      text-decoration: none; transition: transform .18s, filter .18s, border-color .18s;
+    }
+    .primary-btn:hover, .link-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .primary-btn svg, .secondary-btn svg, .link-btn svg { width: 15px; height: 15px; }
+    .secondary-btn { border-color: var(--line); color: #b4c7e1; background: rgba(255,255,255,.035); box-shadow: none; }
+    .secondary-btn:hover { border-color: rgba(103,165,251,.4); color: white; background: rgba(67,126,205,.12); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .entry {
+      position: relative; min-height: 190px; overflow: hidden; padding: 19px;
+      border: 1px solid var(--line); border-radius: 16px;
+      background: linear-gradient(145deg, rgba(17, 39, 69, .9), rgba(10, 25, 47, .92));
+      box-shadow: 0 10px 35px rgba(0,0,0,.12); transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .entry::after { content: ""; position: absolute; width: 130px; height: 130px; right: -66px; top: -68px; border-radius: 50%; background: rgba(55,130,229,.10); filter: blur(2px); pointer-events: none; }
+    .entry:hover { transform: translateY(-3px); border-color: rgba(91,157,246,.32); box-shadow: 0 18px 45px rgba(0,0,0,.22); }
+    .entry-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .entry-icon { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid rgba(96,160,248,.18); border-radius: 10px; background: rgba(48,117,207,.13); color: #83b9ff; }
+    .entry-icon svg { width: 17px; height: 17px; }
+    .tag { padding: 5px 8px; border: 1px solid rgba(94,154,236,.18); border-radius: 7px; background: rgba(38,94,167,.12); color: #8db9f2; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .entry h3 { position: relative; z-index: 1; margin: 17px 0 7px; font-size: 15px; letter-spacing: -.025em; overflow-wrap: anywhere; }
+    .entry p { position: relative; z-index: 1; min-height: 36px; margin: 0; color: #8ea3c0; font-size: 11px; line-height: 1.65; overflow-wrap: anywhere; }
+    .entry-bottom { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 17px; padding-top: 13px; border-top: 1px solid rgba(151,187,235,.09); }
+    .entry-date { color: #6f86a7; font-size: 10px; }
+    .entry-actions { display: flex; gap: 7px; }
+    .small-btn { padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; color: #a9c0df; background: rgba(255,255,255,.025); font-size: 10px; font-weight: 750; }
+    .small-btn:hover { border-color: rgba(103,165,251,.4); color: white; }
+    .empty { grid-column: 1 / -1; padding: 58px 20px; border: 1px dashed rgba(125,166,220,.22); border-radius: 16px; text-align: center; background: rgba(13,29,54,.35); }
+    .empty-icon { width: 45px; height: 45px; margin: 0 auto 14px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 13px; background: rgba(55,120,208,.12); color: #85b9fa; }
+    .empty-icon svg { width: 20px; height: 20px; }
+    .empty h3 { margin: 0 0 7px; font-size: 14px; }
+    .empty p { max-width: 470px; margin: 0 auto; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .empty .empty-hint { margin-top: 10px; color: #7392ba; }
+    footer { display: flex; justify-content: space-between; gap: 14px; margin-top: 52px; padding-top: 18px; border-top: 1px solid var(--line); color: #627895; font-size: 10px; }
+    .hidden-input { display: none; }
+
+    /* Luau code viewer */
+    .viewer-backdrop { position: fixed; inset: 0; z-index: 20; display: none; padding: 28px; background: rgba(2,8,18,.82); backdrop-filter: blur(10px); }
+    .viewer-backdrop.show { display: grid; place-items: center; }
+    .viewer { width: min(1120px, 100%); height: min(820px, 100%); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(125,174,239,.22); border-radius: 17px; background: #081426; box-shadow: var(--shadow); }
+    .viewer-head { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 18px; border-bottom: 1px solid rgba(151,187,235,.12); background: #0c1b30; }
+    .file-label { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .file-symbol { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid rgba(96,160,248,.2); border-radius: 9px; color: #84b8ff; background: rgba(48,117,207,.13); }
+    .file-symbol svg { width: 16px; height: 16px; }
+    .file-meta { min-width: 0; }
+    .file-meta strong { display: block; overflow: hidden; color: #eaf2ff; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .file-meta span { display: block; margin-top: 3px; color: #7189aa; font-size: 10px; }
+    .viewer-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+    .viewer-actions .secondary-btn { height: 34px; padding: 0 11px; font-size: 11px; }
+    .viewer-actions .close-viewer { width: 34px; padding: 0; font-size: 17px; }
+    .editor-wrap { flex: 1; min-height: 0; overflow: auto; background: #081426; }
+    .editor { display: grid; grid-template-columns: 54px minmax(0, 1fr); min-width: max-content; min-height: 100%; padding: 18px 0 28px; font-family: "Cascadia Code", "Fira Code", Consolas, monospace; font-size: 12px; line-height: 1.8; tab-size: 4; }
+    .line-numbers { margin: 0; padding: 0 13px 0 0; color: #48617f; text-align: right; user-select: none; white-space: pre; border-right: 1px solid rgba(151,187,235,.09); }
+    .code-content { min-width: max-content; margin: 0; padding: 0 28px 0 18px; color: #cbd8eb; white-space: pre; }
+    .tok-comment { color: #71869f; font-style: italic; }
+    .tok-string { color: #a6d99b; }
+    .tok-number { color: #d7a8ff; }
+    .tok-keyword { color: #72aaff; font-weight: 650; }
+    .tok-builtin { color: #62d8f5; }
+    .tok-global { color: #f0c477; }
+    .tok-type { color: #76d6c1; }
+    .tok-operator { color: #9fb5d2; }
+    .tok-punctuation { color: #91a6c4; }
+    .libs-dialog { width: min(760px, 100%); max-height: min(720px, 100%); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(125,174,239,.22); border-radius: 17px; background: #081426; box-shadow: var(--shadow); }
+    .libs-content { overflow: auto; padding: 24px; }
+    .libs-section-label { margin-bottom: 15px; color: #79aef4; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
+    .libs-games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .game-chip { display: flex; align-items: center; gap: 11px; min-height: 58px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; color: #dceaff; background: rgba(16,36,66,.72); font-size: 12px; font-weight: 650; overflow-wrap: anywhere; }
+    .game-chip::before { content: ""; width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #61a6ff; box-shadow: 0 0 12px rgba(97,166,255,.45); }
+    .libs-empty { grid-column: 1 / -1; padding: 30px 16px; border: 1px dashed rgba(125,166,220,.22); border-radius: 12px; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.65; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 30; padding: 10px 14px; transform: translate(-50%, 15px); border: 1px solid rgba(111,185,255,.25); border-radius: 10px; color: #eaf4ff; background: #102947; box-shadow: var(--shadow); font-size: 11px; opacity: 0; pointer-events: none; transition: .2s ease; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    @media (max-width: 760px) {
+      .topbar-inner { flex-wrap: wrap; justify-content: center; padding: 13px 0; gap: 12px; }
+      .top-actions { position: static; min-width: 0; width: 100%; justify-content: center; }
+      .tabs { width: 100%; justify-content: center; }
+      .tab { flex: 1; }
+      main { padding-top: 38px; }
+      .hero { align-items: flex-start; flex-direction: column; }
+      .hero-note { display: none; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .viewer-backdrop { padding: 12px; }
+      .viewer { height: 100%; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 28px, 1120px); }
+      .toolbar { align-items: stretch; flex-direction: column; }
+      .toolbar-actions { width: 100%; }
+      .search-wrap { flex: 1; }
+      .search { width: 100%; }
+      .primary-btn { padding: 0 12px; white-space: nowrap; }
+      .grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; }
+      .viewer-head { align-items: flex-start; flex-direction: column; padding: 13px; }
+      .viewer-actions { width: 100%; }
+      .viewer-actions .secondary-btn { flex: 1; }
+      .viewer-actions .close-viewer { flex: 0 0 34px; }
+      .editor { font-size: 11px; }
+      .libs-games { grid-template-columns: 1fr; }
+      .libs-dialog .viewer-head { align-items: flex-start; }
+      .libs-dialog .viewer-actions { width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <nav class="tabs" aria-label="Main sections">
+        <button class="tab active" data-tab="Cracks" type="button">Cracks</button>
+        <button class="tab" data-tab="Obfs" type="button">Obfs</button>
+        <button class="tab" data-tab="Libs" type="button">Libs</button>
+      </nav>
+
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow" id="hero-eyebrow">LIVE DATABASE</div>
+        <h1 id="hero-title">Cracks <span style="color:#6ca9ff">library.</span></h1>
+        <p id="hero-description">Browse the Cracks and Obfs resources loaded from the online database. Open Luau source files in the built-in code viewer.</p>
+      </div>
+      <div class="hero-note"><strong id="note-title">Live database</strong><span id="note-description">Resources load automatically from GitHub.</span></div>
+    </section>
+
+    <section aria-label="Resources">
+      <div class="toolbar">
+        <div class="section-heading"><h2 id="section-title">Your files</h2><span class="count" id="entry-count">0</span></div>
+        <div class="toolbar-actions">
+          <label class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <input class="search" id="search" type="search" placeholder="Search cracks..." autocomplete="off" />
+          </label>
+        </div>
+      </div>
+      <div class="grid" id="entry-grid"></div>
+    </section>
+
+    <footer><span>© 2026 · RESOURCE DATABASE</span><span>Cracks · Obfs · Libs</span></footer>
+  </main>
+
+  <div class="viewer-backdrop" id="viewer-backdrop" role="dialog" aria-modal="true" aria-label="Luau file viewer">
+    <section class="viewer">
+      <header class="viewer-head">
+        <div class="file-label">
+          <div class="file-symbol"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.8h7l5 5V20H6a2 2 0 0 1-2-2V5.8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M13 4v5h5M8 13h8M8 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="file-meta"><strong id="viewer-filename">file.luau</strong><span id="viewer-fileinfo">Luau source</span></div>
+        </div>
+        <div class="viewer-actions">
+          <button class="secondary-btn" id="download-file" type="button"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</button>
+          <button class="secondary-btn" id="copy-file" type="button"><svg viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M15 8V5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v10A1.5 1.5 0 0 0 5.5 17H8" stroke="currentColor" stroke-width="1.6"/></svg>Copy</button>
+          <button class="secondary-btn close-viewer" id="close-viewer" type="button" aria-label="Close viewer">×</button>
+        </div>
+      </header>
+      <div class="editor-wrap" id="editor-wrap">
+        <div class="editor"><pre class="line-numbers" id="line-numbers">1</pre><pre class="code-content" id="code-content"></pre></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="viewer-backdrop" id="libs-backdrop" role="dialog" aria-modal="true" aria-label="Library details">
+    <section class="libs-dialog">
+      <header class="viewer-head">
+        <div class="file-label">
+          <div class="file-symbol"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h4l2 2h5A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Z" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 10h15" stroke="currentColor" stroke-width="1.6"/></svg></div>
+          <div class="file-meta"><strong id="libs-title">Library</strong><span id="libs-subtitle">Game compatibility</span></div>
+        </div>
+        <div class="viewer-actions">
+          <a class="secondary-btn" id="libs-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open library</a>
+          <button class="secondary-btn close-viewer" id="close-libs" type="button" aria-label="Close library details">×</button>
+        </div>
+      </header>
+      <div class="libs-content">
+        <div class="libs-section-label">SUPPORTED GAMES</div>
+        <div class="libs-games" id="libs-games"></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // This is the JSON database endpoint. The page reads both arrays from this file.
+    const DATABASE_URL = 'https://raw.githubusercontent.com/Hello-Cheaters/hello-cheaters.github.io/refs/heads/main/database.json';
+
+    let database = { Cracks: [], Obfs: [], Libs: [] };
+    let databaseLoaded = false;
+    let databaseError = '';
+    let activeTab = 'Cracks';
+    let currentFile = null;
+    let toastTimer = null;
+
+    const grid = document.getElementById('entry-grid');
+    const count = document.getElementById('entry-count');
+    const search = document.getElementById('search');
+    const viewerBackdrop = document.getElementById('viewer-backdrop');
+    const libsBackdrop = document.getElementById('libs-backdrop');
+
+    const icons = {
+      file: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.8h7l5 5V20H6a2 2 0 0 1-2-2V5.8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M13 4v5h5M8 13h8M8 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13.5 14 9.5M8.5 15.5l-1 1a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.5 8.5l1-1a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      folder: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h4l2 2h5A2.5 2.5 0 0 1 20 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.5 10h15" stroke="currentColor" stroke-width="1.6"/></svg>'
+    };
+
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function notify(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function showEmpty(title, detail, hint = '') {
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">${icons.folder}</div><h3>${escapeHTML(title)}</h3><p>${escapeHTML(detail)}</p>${hint ? `<p class="empty-hint">${escapeHTML(hint)}</p>` : ''}</div>`;
+    }
+
+    // Accept normal URL strings and Markdown-formatted links in the JSON.
+    function normalizeUrl(value) {
+      if (typeof value !== 'string') return '';
+      const trimmed = value.trim();
+      const markdown = trimmed.match(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/i);
+      return markdown ? markdown[1] : trimmed;
+    }
+
+    function safeHttpUrl(value) {
+      try {
+        const url = new URL(normalizeUrl(value));
+        return (url.protocol === 'https:' || url.protocol === 'http:') ? url : null;
+      } catch { return null; }
+    }
+
+    function getItems(key) {
+      return Array.isArray(database[key]) ? database[key] : [];
+    }
+
+    function renderCracks(query) {
+      const all = getItems('Cracks');
+      const valid = all.map((item, index) => ({ item, index, url: safeHttpUrl(item && item.fileurl) }))
+        .filter(entry => entry.item && typeof entry.item.name === 'string' && entry.url);
+      const visible = valid.filter(({ item, url }) => `${item.name} ${url.hostname}`.toLowerCase().includes(query));
+      count.textContent = valid.length;
+      grid.innerHTML = '';
+
+      if (!databaseLoaded) {
+        showEmpty('Loading database...', 'Fetching the Cracks and Obfs lists from GitHub.');
+        return;
+      }
+      if (!visible.length) {
+        showEmpty(query ? 'No matching cracks' : 'No cracks in the database', query ? 'Try a different search term.' : 'The database loaded, but its Cracks array has no valid entries.');
+        return;
+      }
+
+      visible.forEach(({ item, index, url }) => {
+        const card = document.createElement('article');
+        card.className = 'entry';
+        card.innerHTML = `
+          <div class="entry-top"><div class="entry-icon">${icons.file}</div><span class="tag">LUAU SOURCE</span></div>
+          <h3>${escapeHTML(item.name)}</h3>
+          <p>Remote source file · ${escapeHTML(url.hostname)}</p>
+          <div class="entry-bottom"><span class="entry-date">Loaded from database</span>
+            <div class="entry-actions"><button class="small-btn" type="button" data-open-crack="${index}">Read code</button></div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderObfs(query) {
+      const all = getItems('Obfs');
+      const valid = all.map((item, index) => ({ item, index, url: safeHttpUrl(item && item.url) }))
+        .filter(entry => entry.item && typeof entry.item.name === 'string' && entry.url);
+      const visible = valid.filter(({ item, url }) => `${item.name} ${url.hostname}`.toLowerCase().includes(query));
+      count.textContent = valid.length;
+      grid.innerHTML = '';
+
+      if (!databaseLoaded) {
+        showEmpty('Loading database...', 'Fetching the Cracks and Obfs lists from GitHub.');
+        return;
+      }
+      if (!visible.length) {
+        showEmpty(query ? 'No matching resources' : 'No Obfs resources in the database', query ? 'Try a different search term.' : 'The database loaded, but its Obfs array has no valid entries.');
+        return;
+      }
+
+      visible.forEach(({ item, url }) => {
+        const sourceType = url.hostname.toLowerCase().includes('github.com') ? 'GITHUB' : 'WEBSITE';
+        const card = document.createElement('article');
+        card.className = 'entry';
+        card.innerHTML = `
+          <div class="entry-top"><div class="entry-icon">${icons.link}</div><span class="tag">${sourceType}</span></div>
+          <h3>${escapeHTML(item.name)}</h3>
+          <p>${escapeHTML(url.hostname)}</p>
+          <div class="entry-bottom"><span class="entry-date">External resource</span>
+            <div class="entry-actions"><a class="link-btn" href="${escapeHTML(url.href)}" target="_blank" rel="noopener noreferrer">Open resource ${icons.link}</a></div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function getLibraryGames(item) {
+      const raw = Array.isArray(item && item.games) ? item.games
+        : Array.isArray(item && item.supportedGames) ? item.supportedGames
+        : (typeof (item && item.game) === 'string' ? [item.game] : []);
+      return raw.map(game => {
+        if (typeof game === 'string') return game.trim();
+        if (game && typeof game.name === 'string') return game.name.trim();
+        return '';
+      }).filter(Boolean);
+    }
+
+    function renderLibs(query) {
+      const all = getItems('Libs');
+      const valid = all.map((item, index) => ({ item, index, url: safeHttpUrl(item && item.url), games: getLibraryGames(item) }))
+        .filter(entry => entry.item && typeof entry.item.name === 'string');
+      const visible = valid.filter(({ item, url, games }) =>
+        `${item.name} ${url ? url.hostname : ''} ${games.join(' ')}`.toLowerCase().includes(query));
+      count.textContent = valid.length;
+      grid.innerHTML = '';
+
+      if (!databaseLoaded) {
+        showEmpty('Loading database...', 'Fetching the Cracks, Obfs and Libs lists from GitHub.');
+        return;
+      }
+      if (!visible.length) {
+        showEmpty(query ? 'No matching libraries' : 'No libraries in the database', query ? 'Try a different search term.' : 'Add a Libs array to the database JSON to show library cards here.');
+        return;
+      }
+
+      visible.forEach(({ item, index, url, games }) => {
+        const card = document.createElement('article');
+        card.className = 'entry';
+        card.innerHTML = `
+          <div class="entry-top"><div class="entry-icon">${icons.folder}</div><span class="tag">UI LIBRARY</span></div>
+          <h3>${escapeHTML(item.name)}</h3>
+          <p>${games.length ? `${games.length} supported game${games.length === 1 ? '' : 's'} listed` : 'Game compatibility details'}</p>
+          <div class="entry-bottom"><span class="entry-date">Library details</span>
+            <div class="entry-actions"><button class="small-btn" type="button" data-open-lib="${index}">View games</button></div>
+          </div>`;
+        if (!url) card.dataset.noExternalUrl = 'true';
+        grid.appendChild(card);
+      });
+    }
+
+    function openLibrary(index) {
+      const item = getItems('Libs')[index];
+      if (!item) return;
+      const games = getLibraryGames(item);
+      document.getElementById('libs-title').textContent = item.name || 'Library';
+      document.getElementById('libs-subtitle').textContent = `${games.length} supported game${games.length === 1 ? '' : 's'} listed`;
+      const gamesHost = document.getElementById('libs-games');
+      gamesHost.innerHTML = '';
+      if (!games.length) {
+        gamesHost.innerHTML = '<div class="libs-empty">No supported games are listed for this library yet.</div>';
+      } else {
+        games.forEach(name => {
+          const game = document.createElement('div');
+          game.className = 'game-chip';
+          game.textContent = name;
+          gamesHost.appendChild(game);
+        });
+      }
+      const url = safeHttpUrl(item.url);
+      const openLink = document.getElementById('libs-open-link');
+      if (url) {
+        openLink.href = url.href;
+        openLink.hidden = false;
+      } else {
+        openLink.hidden = true;
+        openLink.removeAttribute('href');
+      }
+      libsBackdrop.classList.add('show');
+    }
+
+    function closeLibrary() {
+      libsBackdrop.classList.remove('show');
+    }
+
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      if (activeTab === 'Cracks') renderCracks(query);
+      else if (activeTab === 'Obfs') renderObfs(query);
+      else renderLibs(query);
+    }
+
+    function setTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tab').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+      search.value = '';
+      const isCracks = tab === 'Cracks';
+      const isObfs = tab === 'Obfs';
+      document.getElementById('hero-eyebrow').textContent = isCracks ? 'REMOTE LUAU SOURCES' : isObfs ? 'EXTERNAL RESOURCES' : 'UI LIBRARIES';
+      document.getElementById('hero-title').innerHTML = `${tab} <span style="color:#6ca9ff">library.</span>`;
+      document.getElementById('hero-description').textContent = isCracks
+        ? 'Choose an entry to fetch its source code and view it with Luau syntax highlighting.'
+        : isObfs
+          ? 'Browse the websites and GitHub resources listed in the online database.'
+          : 'Browse UI libraries and open each card to view its listed game compatibility.';
+      document.getElementById('section-title').textContent = isCracks ? 'Available cracks' : isObfs ? 'Obfuscation resources' : 'Available libraries';
+      search.placeholder = isCracks ? 'Search cracks...' : isObfs ? 'Search resources...' : 'Search libraries or games...';
+      document.getElementById('note-title').textContent = 'Live database';
+      document.getElementById('note-description').textContent = 'Lists are read automatically from GitHub.';
+      render();
+    }
+
+    function filenameFor(name, url) {
+      let filename = String(name || 'source').trim().replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+      if (!/\.(lua|luau|txt)$/i.test(filename)) {
+        let extension = 'luau';
+        const pathPart = url.pathname.split('/').pop() || '';
+        const match = pathPart.match(/\.(lua|luau|txt)$/i);
+        if (match) extension = match[1].toLowerCase();
+        filename += `.${extension}`;
+      }
+      return filename || 'source.luau';
+    }
+
+    async function openRemoteCrack(index) {
+      const item = getItems('Cracks')[index];
+      const url = safeHttpUrl(item && item.fileurl);
+      if (!item || !url) return;
+
+      currentFile = null;
+      document.getElementById('viewer-filename').textContent = item.name || 'source.luau';
+      document.getElementById('viewer-fileinfo').textContent = 'Fetching source code...';
+      document.getElementById('line-numbers').textContent = '1';
+      document.getElementById('code-content').textContent = 'Loading source from the database link...';
+      viewerBackdrop.classList.add('show');
+
+      try {
+        const response = await fetch(url.href, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const content = await response.text();
+        const filename = filenameFor(item.name, url);
+        const lineCount = content.length ? content.split('\n').length : 1;
+        currentFile = { name: filename, content, size: new Blob([content]).size, lineCount };
+        document.getElementById('viewer-filename').textContent = filename;
+        document.getElementById('viewer-fileinfo').textContent = `${formatBytes(currentFile.size)} · ${lineCount.toLocaleString()} lines · Luau syntax view`;
+        document.getElementById('line-numbers').textContent = Array.from({ length: lineCount }, (_, i) => i + 1).join('\n');
+        document.getElementById('code-content').innerHTML = highlightLuau(content);
+        document.getElementById('editor-wrap').scrollTop = 0;
+        document.getElementById('editor-wrap').scrollLeft = 0;
+      } catch (error) {
+        document.getElementById('viewer-fileinfo').textContent = 'Could not fetch this source';
+        document.getElementById('line-numbers').textContent = '';
+        document.getElementById('code-content').textContent = `Unable to load this file. ${error.message}\n\nCheck that fileurl points directly to a text file and that the host allows browser requests (CORS).`;
+        notify('Could not load source file');
+      }
+    }
+
+    // Small Luau tokenizer for editor-like syntax colors.
+    function highlightLuau(source) {
+      const keywords = new Set(['and','break','do','else','elseif','end','export','for','function','if','in','local','not','or','repeat','return','then','until','while','continue','type']);
+      const builtins = new Set(['assert','collectgarbage','error','getmetatable','ipairs','loadstring','newproxy','next','pairs','pcall','print','rawequal','rawget','rawlen','rawset','select','setmetatable','tonumber','tostring','type','typeof','unpack','xpcall','math','string','table','coroutine','bit32','utf8','buffer','task']);
+      const globals = new Set(['game','workspace','script','plugin','shared','_G','Enum','Instance','Vector2','Vector3','CFrame','UDim','UDim2','Color3','BrickColor','Ray','RaycastParams','Region3','Random','TweenInfo','Rect','NumberRange','NumberSequence','ColorSequence','PhysicalProperties','Axes','Faces','PathfindingService','Players','ReplicatedStorage','ServerStorage','ServerScriptService','StarterGui','StarterPlayer','UserInputService','RunService','HttpService','TweenService']);
+      const types = new Set(['any','boolean','nil','number','string','thread','userdata','vector','table','never','unknown','self']);
+      let out = '';
+      let i = 0;
+      const wrap = (cls, value) => `<span class="${cls}">${escapeHTML(value)}</span>`;
+      while (i < source.length) {
+        const ch = source[i], next = source[i + 1];
+        if (ch === '-' && next === '-') {
+          const start = i;
+          i += 2;
+          if (source[i] === '[' && source[i + 1] === '[') {
+            i += 2;
+            const end = source.indexOf(']]', i);
+            i = end === -1 ? source.length : end + 2;
+          } else while (i < source.length && source[i] !== '\n') i++;
+          out += wrap('tok-comment', source.slice(start, i));
+          continue;
+        }
+        if (ch === '"' || ch === "'" || (ch === '[' && next === '[')) {
+          const start = i;
+          if (ch === '[') {
+            i += 2;
+            const end = source.indexOf(']]', i);
+            i = end === -1 ? source.length : end + 2;
+          } else {
+            const quote = ch;
+            i++;
+            while (i < source.length) {
+              if (source[i] === '\\') { i += 2; continue; }
+              if (source[i] === quote) { i++; break; }
+              i++;
+            }
+          }
+          out += wrap('tok-string', source.slice(start, i));
+          continue;
+        }
+        if (/\d/.test(ch) && (i === 0 || !/[\w.]/.test(source[i - 1]))) {
+          const match = source.slice(i).match(/^(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/);
+          if (match) { out += wrap('tok-number', match[0]); i += match[0].length; continue; }
+        }
+        if (/[A-Za-z_]/.test(ch)) {
+          const word = source.slice(i).match(/^[A-Za-z_][A-Za-z0-9_]*/)[0];
+          let cls = '';
+          if (keywords.has(word)) cls = 'tok-keyword';
+          else if (globals.has(word)) cls = 'tok-global';
+          else if (builtins.has(word)) cls = 'tok-builtin';
+          else if (types.has(word)) cls = 'tok-type';
+          out += cls ? wrap(cls, word) : escapeHTML(word);
+          i += word.length;
+          continue;
+        }
+        if (/[+*/%^#=<>~:-]/.test(ch)) {
+          const op = source.slice(i).match(/^(?:\.\.\.?|::|==|~=|<=|>=|\+=|-=|\*=|\/=|[+*/%^#=<>~:-])/);
+          const value = op ? op[0] : ch;
+          out += wrap('tok-operator', value);
+          i += value.length;
+          continue;
+        }
+        if (/[()[\]{}.,;]/.test(ch)) { out += wrap('tok-punctuation', ch); i++; continue; }
+        out += escapeHTML(ch);
+        i++;
+      }
+      return out;
+    }
+
+    function closeViewer() {
+      viewerBackdrop.classList.remove('show');
+      currentFile = null;
+    }
+
+    function downloadCurrentFile() {
+      if (!currentFile) return;
+      const blob = new Blob([currentFile.content], { type: 'text/plain;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = currentFile.name;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    }
+
+    async function loadDatabase() {
+      try {
+        const response = await fetch(DATABASE_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Database request failed: HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data || typeof data !== 'object') throw new Error('Database JSON must be an object.');
+        database = {
+          Cracks: Array.isArray(data.Cracks) ? data.Cracks : [],
+          Obfs: Array.isArray(data.Obfs) ? data.Obfs : [],
+          Libs: Array.isArray(data.Libs) ? data.Libs : []
+        };
+        databaseLoaded = true;
+        databaseError = '';
+      } catch (error) {
+        databaseLoaded = false;
+        databaseError = error.message;
+      }
+      render();
+      if (databaseError) showEmpty('Could not load database', `${databaseError}. Check the database URL, JSON format, and browser CORS access.`);
+    }
+
+    document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => setTab(button.dataset.tab)));
+    search.addEventListener('input', render);
+
+    grid.addEventListener('click', event => {
+      const crackButton = event.target.closest('[data-open-crack]');
+      if (crackButton) {
+        openRemoteCrack(Number(crackButton.dataset.openCrack));
+        return;
+      }
+      const libraryButton = event.target.closest('[data-open-lib]');
+      if (libraryButton) openLibrary(Number(libraryButton.dataset.openLib));
+    });
+
+    document.getElementById('download-file').addEventListener('click', downloadCurrentFile);
+    document.getElementById('copy-file').addEventListener('click', async () => {
+      if (!currentFile) return;
+      try {
+        await navigator.clipboard.writeText(currentFile.content);
+        notify('Code copied to clipboard');
+      } catch {
+        notify('Clipboard access was blocked by your browser');
+      }
+    });
+    document.getElementById('close-viewer').addEventListener('click', closeViewer);
+    viewerBackdrop.addEventListener('click', event => { if (event.target === viewerBackdrop) closeViewer(); });
+    document.getElementById('close-libs').addEventListener('click', closeLibrary);
+    libsBackdrop.addEventListener('click', event => { if (event.target === libsBackdrop) closeLibrary(); });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        if (viewerBackdrop.classList.contains('show')) closeViewer();
+        if (libsBackdrop.classList.contains('show')) closeLibrary();
+      }
+    });
+
+    setTab('Cracks');
+    loadDatabase();
+  </script>
+</body>
+</html>
